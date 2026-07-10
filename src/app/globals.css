@@ -128,3 +128,28 @@
     @apply font-sans;
   }
 }
+
+/* Hide scrollbar utility */
+.scrollbar-hide {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
+}
+
+/* Recharts dark mode fixes */
+.dark .recharts-cartesian-grid-horizontal line,
+.dark .recharts-cartesian-grid-vertical line {
+  stroke: oklch(1 0 0 / 8%);
+}
+.dark .recharts-text {
+  fill: oklch(0.708 0 0);
+}
+.dark .recharts-tooltip-wrapper .recharts-default-tooltip {
+  background: oklch(0.205 0 0) !important;
+  border-color: oklch(1 0 0 / 10%) !important;
+}
+.dark .recharts-legend-item-text {
+  color: oklch(0.708 0 0) !important;
+}
