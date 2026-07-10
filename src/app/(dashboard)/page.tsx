@@ -5,8 +5,12 @@ import { SummaryCards } from "@/components/dashboard/summary-cards";
 import { ExpenseTable } from "@/components/dashboard/expense-table";
 import { IncomePanel } from "@/components/dashboard/income-panel";
 import { MonthSelector } from "@/components/dashboard/month-selector";
+import { PieChart } from "@/components/dashboard/pie-chart";
+import { LineChart } from "@/components/dashboard/line-chart";
+import { BarChart } from "@/components/dashboard/bar-chart";
 import { Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { MovementDialog } from "@/components/dashboard/movement-dialog";
 
 interface MovementData {
@@ -21,11 +25,27 @@ interface MovementData {
   categoryId: string;
 }
 
+interface CategorySummary {
+  name: string;
+  color: string;
+  total: number;
+  count: number;
+  percentage: number;
+}
+
+interface TrendItem {
+  month: string;
+  ingresos: number;
+  egresos: number;
+}
+
 interface SummaryData {
   totalIngresos: number;
   totalEgresos: number;
   balance: number;
   totalMovements: number;
+  byCategory: CategorySummary[];
+  monthlyTrend: TrendItem[];
 }
 
 export default function DashboardPage() {
@@ -37,7 +57,7 @@ export default function DashboardPage() {
   const [loading, setLoading] = useState(true);
   const [dialogOpen, setDialogOpen] = useState(false);
 
-  const fetchMovements = useCallback(async () => {
+  const fetchData = useCallback(async () => {
     setLoading(true);
     try {
       const [year, month] = activeMonth.split("-");
@@ -61,8 +81,8 @@ export default function DashboardPage() {
   }, [activeMonth]);
 
   useEffect(() => {
-    fetchMovements();
-  }, [fetchMovements]);
+    fetchData();
+  }, [fetchData]);
 
   async function handleTogglePaid(id: string, isPaid: boolean) {
     const res = await fetch(`/api/movements/${id}`, {
@@ -91,7 +111,7 @@ export default function DashboardPage() {
       body: JSON.stringify({ ...data, amount: parseFloat(data.amount) }),
     });
     if (res.ok) {
-      fetchMovements();
+      fetchData();
     }
   }
 
@@ -102,26 +122,82 @@ export default function DashboardPage() {
 
   const incomes = movements.filter((m) => m.type === "INGRESO");
 
+  // Compute bar chart data: compare current month with previous
+  const barChartData = summary?.monthlyTrend
+    ? (() => {
+        const trend = summary.monthlyTrend;
+        const current = trend[trend.length - 1];
+        const previous = trend[trend.length - 2];
+        if (!current || !previous) return [];
+        return [
+          { name: "Ingresos", actual: current.ingresos, previous: previous.ingresos },
+          { name: "Egresos", actual: current.egresos, previous: previous.egresos },
+          { name: "Saldo", actual: current.ingresos - current.egresos, previous: previous.ingresos - previous.egresos },
+        ];
+      })()
+    : [];
+
   return (
     <div className="space-y-6">
+      {/* Header */}
       <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold tracking-tight">Control de Cuentas</h1>
+        <div>
+          <h1 className="text-2xl font-bold tracking-tight">Dashboard</h1>
+          <p className="text-sm text-muted-foreground">
+            Control de gastos e ingresos
+          </p>
+        </div>
         <Button size="sm" onClick={() => setDialogOpen(true)}>
           <Plus className="h-4 w-4 mr-1" />
           Nuevo Movimiento
         </Button>
       </div>
 
+      {/* Month Selector */}
       <MonthSelector
         months={availableMonths}
         active={activeMonth}
         onChange={setActiveMonth}
       />
 
+      {/* Summary Cards */}
       <SummaryCards data={summary} />
 
-      <hr className="border-t" />
+      {/* Charts Section */}
+      {summary && (
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-base">Gastos por Categoría</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <PieChart data={summary.byCategory} />
+            </CardContent>
+          </Card>
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-base">Evolución Mensual</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <LineChart data={summary.monthlyTrend} />
+            </CardContent>
+          </Card>
+        </div>
+      )}
 
+      {/* Bar Chart */}
+      {barChartData.length > 0 && (
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-base">Comparativa con Mes Anterior</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <BarChart data={barChartData} />
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Tables */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <div className="lg:col-span-2">
           <h2 className="text-lg font-semibold mb-3">Gastos</h2>
