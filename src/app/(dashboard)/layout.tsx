@@ -1,5 +1,8 @@
 import { auth, signOut } from "@/lib/auth";
 import { redirect } from "next/navigation";
+import { Sidebar } from "@/components/layout/sidebar";
+import { MobileNav } from "@/components/layout/mobile-nav";
+import { UserMenuWrapper } from "./user-menu-wrapper";
 
 export default async function DashboardLayout({
   children,
@@ -13,31 +16,18 @@ export default async function DashboardLayout({
   }
 
   return (
-    <div className="flex min-h-screen flex-col">
-      <header className="border-b bg-card px-6 py-3">
-        <div className="mx-auto flex max-w-7xl items-center justify-between">
-          <h1 className="text-lg font-semibold">Control Cuentas</h1>
-          <div className="flex items-center gap-4">
-            <span className="text-sm text-muted-foreground">
-              {session.user?.email}
-            </span>
-            <form
-              action={async () => {
-                "use server";
-                await signOut({ redirectTo: "/login" });
-              }}
-            >
-              <button
-                type="submit"
-                className="rounded-lg bg-destructive/10 px-3 py-1.5 text-sm text-destructive transition-colors hover:bg-destructive/20"
-              >
-                Salir
-              </button>
-            </form>
-          </div>
-        </div>
-      </header>
-      <main className="flex-1 p-6">{children}</main>
+    <div className="flex min-h-screen flex-col lg:flex-row">
+      <Sidebar />
+      <div className="flex flex-1 flex-col">
+        {/* Top header */}
+        <header className="sticky top-0 z-40 flex h-14 items-center justify-end gap-4 border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 px-6">
+          <UserMenuWrapper />
+        </header>
+        <main className="flex-1 p-4 md:p-6 pb-20 lg:pb-6">
+          {children}
+        </main>
+      </div>
+      <MobileNav />
     </div>
   );
 }
