@@ -13,6 +13,7 @@ import { Button } from "@/components/ui/button";
 import { formatCurrency } from "@/lib/utils";
 import { CheckCircle2, Circle, Loader2 } from "lucide-react";
 import { useState } from "react";
+import { motion, AnimatePresence } from "framer-motion";
 
 interface Movement {
   id: string;
@@ -37,18 +38,33 @@ export function ExpenseTable({ movements, onTogglePaid, loading }: Props) {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center py-12">
-        <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
-        <span className="ml-2 text-muted-foreground">Cargando movimientos...</span>
+      <div className="space-y-2">
+        {[1, 2, 3, 4, 5].map((i) => (
+          <div
+            key={i}
+            className="flex items-center gap-4 rounded-lg border p-4 animate-pulse"
+          >
+            <div className="h-5 w-5 rounded-full bg-muted" />
+            <div className="flex-1 space-y-2">
+              <div className="h-4 w-48 rounded bg-muted" />
+              <div className="h-3 w-24 rounded bg-muted" />
+            </div>
+            <div className="h-5 w-20 rounded bg-muted" />
+          </div>
+        ))}
       </div>
     );
   }
 
   if (expenses.length === 0) {
     return (
-      <div className="text-center py-12 text-muted-foreground">
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        className="text-center py-12 text-muted-foreground"
+      >
         No hay gastos registrados este mes
-      </div>
+      </motion.div>
     );
   }
 
@@ -62,7 +78,7 @@ export function ExpenseTable({ movements, onTogglePaid, loading }: Props) {
   }
 
   return (
-    <div className="rounded-md border">
+    <div className="rounded-lg border overflow-hidden">
       <Table>
         <TableHeader>
           <TableRow>
@@ -74,47 +90,73 @@ export function ExpenseTable({ movements, onTogglePaid, loading }: Props) {
           </TableRow>
         </TableHeader>
         <TableBody>
-          {expenses.map((movement) => (
-            <TableRow
-              key={movement.id}
-              className={movement.isPaid ? "bg-green-50/50 dark:bg-green-950/20" : ""}
-            >
-              <TableCell>
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className="h-8 w-8"
-                  onClick={() => handleToggle(movement)}
-                  disabled={togglingId === movement.id}
-                >
-                  {togglingId === movement.id ? (
-                    <Loader2 className="h-4 w-4 animate-spin" />
-                  ) : movement.isPaid ? (
-                    <CheckCircle2 className="h-4 w-4 text-green-600" />
-                  ) : (
-                    <Circle className="h-4 w-4 text-muted-foreground" />
-                  )}
-                </Button>
-              </TableCell>
-              <TableCell className="font-medium">{movement.description}</TableCell>
-              <TableCell>
-                <Badge
-                  variant="outline"
-                  style={{ borderColor: movement.category.color, color: movement.category.color }}
-                >
-                  {movement.category.name}
-                </Badge>
-              </TableCell>
-              <TableCell className="text-right font-mono">
-                {formatCurrency(movement.amount)}
-              </TableCell>
-              <TableCell>
-                <Badge variant={movement.isPaid ? "default" : "secondary"}>
-                  {movement.isPaid ? "Pagado" : "Pendiente"}
-                </Badge>
-              </TableCell>
-            </TableRow>
-          ))}
+          <AnimatePresence mode="popLayout">
+            {expenses.map((movement, index) => (
+              <motion.tr
+                key={movement.id}
+                initial={{ opacity: 0, x: -10 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0, x: 10 }}
+                transition={{ delay: index * 0.03, duration: 0.2 }}
+                className={`group transition-colors hover:bg-muted/50 ${
+                  movement.isPaid ? "bg-green-50/50 dark:bg-green-950/20" : ""
+                }`}
+              >
+                <TableCell>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="h-8 w-8 transition-transform hover:scale-110"
+                    onClick={() => handleToggle(movement)}
+                    disabled={togglingId === movement.id}
+                  >
+                    {togglingId === movement.id ? (
+                      <Loader2 className="h-4 w-4 animate-spin" />
+                    ) : movement.isPaid ? (
+                      <motion.div
+                        initial={{ scale: 0 }}
+                        animate={{ scale: 1 }}
+                        transition={{ type: "spring", stiffness: 300 }}
+                      >
+                        <CheckCircle2 className="h-4 w-4 text-green-600" />
+                      </motion.div>
+                    ) : (
+                      <Circle className="h-4 w-4 text-muted-foreground group-hover:text-foreground transition-colors" />
+                    )}
+                  </Button>
+                </TableCell>
+                <TableCell className="font-medium">{movement.description}</TableCell>
+                <TableCell>
+                  <Badge
+                    variant="outline"
+                    className="transition-all hover:scale-105"
+                    style={{
+                      borderColor: movement.category.color,
+                      color: movement.category.color,
+                      backgroundColor: `${movement.category.color}10`,
+                    }}
+                  >
+                    <span
+                      className="mr-1.5 inline-block h-2 w-2 rounded-full"
+                      style={{ backgroundColor: movement.category.color }}
+                    />
+                    {movement.category.name}
+                  </Badge>
+                </TableCell>
+                <TableCell className="text-right font-mono tabular-nums">
+                  {formatCurrency(movement.amount)}
+                </TableCell>
+                <TableCell>
+                  <Badge
+                    variant={movement.isPaid ? "default" : "secondary"}
+                    className="transition-all"
+                  >
+                    {movement.isPaid ? "Pagado" : "Pendiente"}
+                  </Badge>
+                </TableCell>
+              </motion.tr>
+            ))}
+          </AnimatePresence>
         </TableBody>
       </Table>
     </div>
