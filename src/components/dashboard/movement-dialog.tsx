@@ -19,7 +19,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Loader2 } from "lucide-react";
+import { Loader2, Pencil } from "lucide-react";
 
 interface Category {
   id: string;
@@ -37,14 +37,25 @@ interface MovementFormData {
   notes: string;
 }
 
+interface MovementToEdit {
+  id: string;
+  description: string;
+  amount: number;
+  type: "EGRESO" | "INGRESO";
+  categoryId: string;
+  isPaid: boolean;
+  notes: string | null;
+}
+
 interface Props {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  onSave: (data: MovementFormData) => Promise<void>;
+  onSave: (data: MovementFormData, editId?: string) => Promise<void>;
   defaultType?: "EGRESO" | "INGRESO";
+  editMovement?: MovementToEdit | null;
 }
 
-export function MovementDialog({ open, onOpenChange, onSave, defaultType = "EGRESO" }: Props) {
+export function MovementDialog({ open, onOpenChange, onSave, defaultType = "EGRESO", editMovement }: Props) {
   const [categories, setCategories] = useState<Category[]>([]);
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
@@ -57,19 +68,32 @@ export function MovementDialog({ open, onOpenChange, onSave, defaultType = "EGRE
     notes: "",
   });
 
+  const isEditing = !!editMovement;
+
   useEffect(() => {
     if (open) {
-      setForm({
-        description: "",
-        amount: "",
-        type: defaultType,
-        categoryId: "",
-        isPaid: false,
-        notes: "",
-      });
+      if (editMovement) {
+        setForm({
+          description: editMovement.description,
+          amount: String(editMovement.amount),
+          type: editMovement.type,
+          categoryId: editMovement.categoryId,
+          isPaid: editMovement.isPaid,
+          notes: editMovement.notes || "",
+        });
+      } else {
+        setForm({
+          description: "",
+          amount: "",
+          type: defaultType,
+          categoryId: "",
+          isPaid: false,
+          notes: "",
+        });
+      }
       fetchCategories();
     }
-  }, [open, defaultType]);
+  }, [open, editMovement, defaultType]);
 
   async function fetchCategories() {
     setLoading(true);
@@ -92,10 +116,13 @@ export function MovementDialog({ open, onOpenChange, onSave, defaultType = "EGRE
 
     setSaving(true);
     try {
-      await onSave({
-        ...form,
-        amount: form.amount.replace(/\./g, "").replace(",", "."),
-      });
+      await onSave(
+        {
+          ...form,
+          amount: form.amount.replace(/\./g, "").replace(",", "."),
+        },
+        editMovement?.id
+      );
       onOpenChange(false);
     } finally {
       setSaving(false);
@@ -106,9 +133,14 @@ export function MovementDialog({ open, onOpenChange, onSave, defaultType = "EGRE
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>Nuevo Movimiento</DialogTitle>
+          <DialogTitle className="flex items-center gap-2">
+            {isEditing ? <Pencil className="h-4 w-4" /> : null}
+            {isEditing ? "Editar Movimiento" : "Nuevo Movimiento"}
+          </DialogTitle>
           <DialogDescription>
-            Agregá un nuevo gasto o ingreso al mes activo.
+            {isEditing
+              ? "Modificá los datos del movimiento seleccionado."
+              : "Agregá un nuevo gasto o ingreso al mes activo."}
           </DialogDescription>
         </DialogHeader>
 
@@ -184,13 +216,26 @@ export function MovementDialog({ open, onOpenChange, onSave, defaultType = "EGRE
             </Select>
           </div>
 
+          <div className="flex items-center gap-2">
+            <input
+              type="checkbox"
+              id="isPaid"
+              checked={form.isPaid}
+              onChange={(e) => setForm({ ...form, isPaid: e.target.checked })}
+              className="h-4 w-4 rounded border-gray-300"
+            />
+            <Label htmlFor="isPaid" className="text-sm cursor-pointer">
+              Marcar como pagado
+            </Label>
+          </div>
+
           <DialogFooter>
             <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
               Cancelar
             </Button>
             <Button type="submit" disabled={saving}>
               {saving && <Loader2 className="h-4 w-4 mr-1 animate-spin" />}
-              Guardar
+              {isEditing ? "Guardar cambios" : "Guardar"}
             </Button>
           </DialogFooter>
         </form>

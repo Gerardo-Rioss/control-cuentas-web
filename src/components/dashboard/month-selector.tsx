@@ -1,5 +1,6 @@
 "use client";
 
+import { useState, useEffect } from "react";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { parseMonthName } from "@/lib/utils";
 import { motion } from "framer-motion";
@@ -11,23 +12,13 @@ interface Props {
 }
 
 export function MonthSelector({ months, active, onChange }: Props) {
-  const current = months.find((m) => m === active) || months[0];
-  const currentDate = current ? new Date(current + "-01") : new Date();
-  const currentYear = currentDate.getFullYear();
-
-  const allMonths: string[] = [];
-  const today = new Date();
-  for (let i = 5; i >= 0; i--) {
-    const d = new Date(today.getFullYear(), today.getMonth() - i, 1);
-    allMonths.push(`${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`);
+  if (months.length === 0) {
+    return (
+      <div className="py-2 text-sm text-muted-foreground">
+        No hay meses con movimientos registrados
+      </div>
+    );
   }
-
-  for (const m of months) {
-    if (!allMonths.includes(m)) {
-      allMonths.push(m);
-    }
-  }
-  allMonths.sort();
 
   return (
     <motion.div
@@ -37,10 +28,9 @@ export function MonthSelector({ months, active, onChange }: Props) {
     >
       <Tabs value={active} onValueChange={onChange} className="w-full">
         <TabsList className="w-full justify-start overflow-x-auto scrollbar-hide">
-          {allMonths.map((month) => {
+          {months.map((month) => {
             const d = new Date(month + "-01");
-            const label = `${parseMonthName(d.getMonth() + 1)}`;
-            const isActive = month === active;
+            const label = parseMonthName(d.getMonth() + 1);
             return (
               <TabsTrigger
                 key={month}
@@ -48,9 +38,7 @@ export function MonthSelector({ months, active, onChange }: Props) {
                 className="min-w-fit transition-all data-[state=active]:shadow-sm"
               >
                 <span className="hidden sm:inline">{label} </span>
-                <span className="sm:hidden">
-                  {label.slice(0, 3)}
-                </span>
+                <span className="sm:hidden">{label.slice(0, 3)}</span>
                 <span className="ml-1 text-xs opacity-60">{d.getFullYear()}</span>
               </TabsTrigger>
             );

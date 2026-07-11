@@ -56,6 +56,7 @@ export default function DashboardPage() {
   const [summary, setSummary] = useState<SummaryData | null>(null);
   const [loading, setLoading] = useState(true);
   const [dialogOpen, setDialogOpen] = useState(false);
+  const [editingMovement, setEditingMovement] = useState<MovementData | null>(null);
 
   const fetchData = useCallback(async () => {
     setLoading(true);
@@ -84,6 +85,30 @@ export default function DashboardPage() {
     fetchData();
   }, [fetchData]);
 
+  // Compute available months from movements data (deduped from trend)
+  const availableMonths = (() => {
+    const monthsSet = new Set<string>();
+    // Add months from trend data (only those with activity)
+    if (summary?.monthlyTrend) {
+      for (const t of summary.monthlyTrend) {
+        if (t.ingresos > 0 || t.egresos > 0) {
+          monthsSet.add(t.month);
+        }
+      }
+    }
+    // Also ensure the active month is included
+    monthsSet.add(activeMonth);
+    // Sort chronologically
+    return Array.from(monthsSet).sort();
+  })();
+
+  // If active month has no data, auto-switch to latest with data
+  useEffect(() => {
+    if (!loading && availableMonths.length > 0 && !availableMonths.includes(activeMonth)) {
+      setActiveMonth(availableMonths[availableMonths.length - 1]);
+    }
+  }, [availableMonths, activeMonth, loading]);
+
   async function handleTogglePaid(id: string, isPaid: boolean) {
     const res = await fetch(`/api/movements/${id}`, {
       method: "PATCH",
@@ -94,19 +119,16 @@ export default function DashboardPage() {
       setMovements((prev) =>
         prev.map((m) => (m.id === id ? { ...m, isPaid } : m))
       );
-      // Refresh summary
-      const [year, month] = activeMonth.split("-");
-      const sumRes = await fetch(`/api/summary?year=${year}&month=${month}`);
-      if (sumRes.ok) {
-        const sumData = await sumRes.json();
-        setSummary(sumData.data);
-      }
+      fetchData();
     }
   }
 
-  async function handleCreateMovement(data: { description: string; amount: string; type: "EGRESO" | "INGRESO"; categoryId: string; isPaid: boolean; notes: string }) {
-    const res = await fetch("/api/movements", {
-      method: "POST",
+  async function handleSaveMovement(data: { description: string; amount: string; type: "EGRESO" | "INGRESO"; categoryId: string; isPaid: boolean; notes: string }, editId?: string) {
+    const url = editId ? `/api/movements/${editId}` : "/api/movements";
+    const method = editId ? "PATCH" : "POST";
+
+    const res = await fetch(url, {
+      method,
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ ...data, amount: parseFloat(data.amount) }),
     });
@@ -115,17 +137,30 @@ export default function DashboardPage() {
     }
   }
 
-  const availableMonths = [
-    "2025-12", "2026-01", "2026-02", "2026-03", "2026-04", "2026-05",
-    "2026-06", "2026-07",
-  ];
+  async function handleDeleteMovement(id: string) {
+    const res = await fetch(`/api/movements/${id}`, { method: "DELETE" });
+    if (res.ok) {
+      setMovements((prev) => prev.filter((m) => m.id !== id));
+      fetchData();
+    }
+  }
 
-  const incomes = movements.filter((m) => m.type === "INGRESO");
+  function handleEdit(movement: MovementData) {
+    setEditingMovement(movement);
+    setDialogOpen(true);
+  }
 
-  // Compute bar chart data: compare current month with previous
+  function handleNewMovement() {
+    setEditingMovement(null);
+    setDialogOpen(true);
+  }
+
+  const incomes = movements.filter((m) => m.type === "INGRESO") as any[];
+
+  // Bar chart data: compare current month with previous
   const barChartData = summary?.monthlyTrend
     ? (() => {
-        const trend = summary.monthlyTrend;
+        const trend = summary.monthlyTrend.filter((t) => t.ingresos > 0 || t.egresos > 0);
         const current = trend[trend.length - 1];
         const previous = trend[trend.length - 2];
         if (!current || !previous) return [];
@@ -147,24 +182,26 @@ export default function DashboardPage() {
             Control de gastos e ingresos
           </p>
         </div>
-        <Button size="sm" onClick={() => setDialogOpen(true)}>
+        <Button size="sm" onClick={handleNewMovement}>
           <Plus className="h-4 w-4 mr-1" />
           Nuevo Movimiento
         </Button>
       </div>
 
-      {/* Month Selector */}
-      <MonthSelector
-        months={availableMonths}
-        active={activeMonth}
-        onChange={setActiveMonth}
-      />
+      {/* Month Selector - only shows months with data */}
+      {!loading && (
+        <MonthSelector
+          months={availableMonths}
+          active={activeMonth}
+          onChange={setActiveMonth}
+        />
+      )}
 
       {/* Summary Cards */}
       <SummaryCards data={summary} />
 
       {/* Charts Section */}
-      {summary && (
+      {summary && summary.monthlyTrend && (
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
           <Card>
             <CardHeader>
@@ -204,19 +241,30 @@ export default function DashboardPage() {
           <ExpenseTable
             movements={movements}
             onTogglePaid={handleTogglePaid}
+            onEdit={handleEdit}
+            onDelete={handleDeleteMovement}
             loading={loading}
           />
         </div>
         <div>
           <h2 className="text-lg font-semibold mb-3">Ingresos</h2>
-          <IncomePanel incomes={incomes} loading={loading} />
+          <IncomePanel
+            incomes={incomes}
+            onEdit={handleEdit}
+            onDelete={handleDeleteMovement}
+            loading={loading}
+          />
         </div>
       </div>
 
       <MovementDialog
         open={dialogOpen}
-        onOpenChange={setDialogOpen}
-        onSave={handleCreateMovement}
+        onOpenChange={(open) => {
+          setDialogOpen(open);
+          if (!open) setEditingMovement(null);
+        }}
+        onSave={handleSaveMovement}
+        editMovement={editingMovement}
       />
     </div>
   );

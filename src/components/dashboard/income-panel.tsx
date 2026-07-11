@@ -9,23 +9,33 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { formatCurrency } from "@/lib/utils";
 import { motion, AnimatePresence } from "framer-motion";
+import { Trash2, Loader2, Pencil } from "lucide-react";
+import { useState } from "react";
 
 interface IncomeMovement {
   id: string;
   description: string;
   amount: number;
   date: string;
-  category: { name: string; color: string };
+  isPaid: boolean;
+  notes: string | null;
+  category: { name: string; color: string; id: string };
+  categoryId: string;
+  type: "INGRESO";
 }
 
 interface Props {
   incomes: IncomeMovement[];
+  onEdit: (movement: IncomeMovement) => void;
+  onDelete: (id: string) => Promise<void>;
   loading?: boolean;
 }
 
-export function IncomePanel({ incomes, loading }: Props) {
+export function IncomePanel({ incomes, onEdit, onDelete, loading }: Props) {
+  const [deletingId, setDeletingId] = useState<string | null>(null);
   const total = incomes.reduce((sum, inc) => sum + Number(inc.amount), 0);
 
   if (loading) {
@@ -53,6 +63,16 @@ export function IncomePanel({ incomes, loading }: Props) {
     );
   }
 
+  async function handleDelete(inc: IncomeMovement) {
+    if (!confirm(`¿Eliminar ingreso "${inc.description}"?`)) return;
+    setDeletingId(inc.id);
+    try {
+      await onDelete(inc.id);
+    } finally {
+      setDeletingId(null);
+    }
+  }
+
   return (
     <div className="rounded-lg border overflow-hidden">
       <Table>
@@ -60,6 +80,7 @@ export function IncomePanel({ incomes, loading }: Props) {
           <TableRow>
             <TableHead>Ingreso</TableHead>
             <TableHead className="text-right">Monto</TableHead>
+            <TableHead className="w-16 text-right">Acción</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
@@ -95,6 +116,33 @@ export function IncomePanel({ incomes, loading }: Props) {
                 <TableCell className="text-right font-mono tabular-nums text-green-600">
                   +{formatCurrency(inc.amount)}
                 </TableCell>
+                <TableCell className="text-right">
+                  <div className="flex items-center justify-end gap-1">
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="h-7 w-7 text-muted-foreground hover:text-primary transition-colors"
+                      onClick={() => onEdit(inc)}
+                      title="Editar"
+                    >
+                      <Pencil className="h-3.5 w-3.5" />
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="h-7 w-7 text-muted-foreground hover:text-destructive transition-colors"
+                      onClick={() => handleDelete(inc)}
+                      disabled={deletingId === inc.id}
+                      title="Eliminar"
+                    >
+                      {deletingId === inc.id ? (
+                        <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                      ) : (
+                        <Trash2 className="h-3.5 w-3.5" />
+                      )}
+                    </Button>
+                  </div>
+                </TableCell>
               </motion.tr>
             ))}
           </AnimatePresence>
@@ -110,6 +158,7 @@ export function IncomePanel({ incomes, loading }: Props) {
                 +{formatCurrency(total)}
               </motion.span>
             </TableCell>
+            <TableCell />
           </TableRow>
         </TableBody>
       </Table>
