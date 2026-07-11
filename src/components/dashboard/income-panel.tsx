@@ -26,7 +26,7 @@ interface Props {
 }
 
 export function IncomePanel({ incomes, loading }: Props) {
-  const total = incomes.reduce((sum, inc) => sum + inc.amount, 0);
+  const total = incomes.reduce((sum, inc) => sum + Number(inc.amount), 0);
 
   if (loading) {
     return (
