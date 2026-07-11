@@ -85,29 +85,27 @@ export default function DashboardPage() {
     fetchData();
   }, [fetchData]);
 
-  // Compute available months from movements data (deduped from trend)
+  // Compute all months: last 12 months + months with data + current
   const availableMonths = (() => {
     const monthsSet = new Set<string>();
-    // Add months from trend data (only those with activity)
+    const now = new Date();
+    // Last 12 months
+    for (let i = 11; i >= 0; i--) {
+      const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+      monthsSet.add(`${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`);
+    }
+    // Also include months from trend data (in case there are older months)
     if (summary?.monthlyTrend) {
       for (const t of summary.monthlyTrend) {
-        if (t.ingresos > 0 || t.egresos > 0) {
-          monthsSet.add(t.month);
-        }
+        monthsSet.add(t.month);
       }
     }
-    // Also ensure the active month is included
+    // Ensure active month is always included
     monthsSet.add(activeMonth);
-    // Sort chronologically
     return Array.from(monthsSet).sort();
   })();
 
-  // If active month has no data, auto-switch to latest with data
-  useEffect(() => {
-    if (!loading && availableMonths.length > 0 && !availableMonths.includes(activeMonth)) {
-      setActiveMonth(availableMonths[availableMonths.length - 1]);
-    }
-  }, [availableMonths, activeMonth, loading]);
+  // Remove auto-switch - all months are available in the 12-month range
 
   async function handleTogglePaid(id: string, isPaid: boolean) {
     const res = await fetch(`/api/movements/${id}`, {
