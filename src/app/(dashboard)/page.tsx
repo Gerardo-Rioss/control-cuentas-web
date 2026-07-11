@@ -85,8 +85,8 @@ export default function DashboardPage() {
     fetchData();
   }, [fetchData]);
 
-  // Compute all months: last 12 months + months with data + current
-  const availableMonths = (() => {
+  // Compute all months: last 12 months, but expandable
+  const [availableMonths, setAvailableMonths] = useState<string[]>(() => {
     const monthsSet = new Set<string>();
     const now = new Date();
     // Last 12 months
@@ -94,18 +94,55 @@ export default function DashboardPage() {
       const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
       monthsSet.add(`${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`);
     }
-    // Also include months from trend data (in case there are older months)
+    // Also include months from trend data
     if (summary?.monthlyTrend) {
       for (const t of summary.monthlyTrend) {
         monthsSet.add(t.month);
       }
     }
-    // Ensure active month is always included
-    monthsSet.add(activeMonth);
     return Array.from(monthsSet).sort();
-  })();
+  });
 
-  // Remove auto-switch - all months are available in the 12-month range
+  // Sync availableMonths when summary loads (adds any older months)
+  useEffect(() => {
+    if (summary?.monthlyTrend) {
+      setAvailableMonths((prev) => {
+        const set = new Set(prev);
+        for (const t of summary.monthlyTrend) {
+          set.add(t.month);
+        }
+        return Array.from(set).sort();
+      });
+    }
+  }, [summary]);
+
+  function handleMonthChange(month: string) {
+    // Ensure the month exists in the list
+    setAvailableMonths((prev) => {
+      if (prev.includes(month)) return prev;
+      const set = new Set(prev);
+      set.add(month);
+      return Array.from(set).sort();
+    });
+    setActiveMonth(month);
+  }
+
+  // Dynamically expand months when navigating beyond current range
+  function expandMonths(direction: "prev" | "next") {
+    setAvailableMonths((prev) => {
+      const set = new Set(prev);
+      const first = new Date(prev[0] + "-01");
+      const last = new Date(prev[prev.length - 1] + "-01");
+      if (direction === "prev") {
+        const d = new Date(first.getFullYear(), first.getMonth() - 1, 1);
+        set.add(`${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`);
+      } else {
+        const d = new Date(last.getFullYear(), last.getMonth() + 1, 1);
+        set.add(`${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`);
+      }
+      return Array.from(set).sort();
+    });
+  }
 
   async function handleTogglePaid(id: string, isPaid: boolean) {
     const res = await fetch(`/api/movements/${id}`, {
@@ -141,6 +178,19 @@ export default function DashboardPage() {
       setMovements((prev) => prev.filter((m) => m.id !== id));
       fetchData();
     }
+  }
+
+  async function handleDeleteMonth(month: string) {
+    const [year, m] = month.split("-");
+    // Delete all movements for that month
+    const res = await fetch(`/api/movements?year=${year}&month=${m}&limit=1000`);
+    if (!res.ok) return;
+    const data = await res.json();
+    const movs = data.data?.movements ?? [];
+    for (const mov of movs) {
+      await fetch(`/api/movements/${mov.id}`, { method: "DELETE" });
+    }
+    fetchData();
   }
 
   function handleEdit(movement: MovementData) {
@@ -186,12 +236,17 @@ export default function DashboardPage() {
         </Button>
       </div>
 
-      {/* Month Selector - only shows months with data */}
+      {/* Month Selector - navegación mes a mes */}
       {!loading && (
         <MonthSelector
           months={availableMonths}
           active={activeMonth}
-          onChange={setActiveMonth}
+          onChange={(month) => {
+            handleMonthChange(month);
+          }}
+          onDeleteMonth={handleDeleteMonth}
+          onExpandPrev={() => expandMonths("prev")}
+          onExpandNext={() => expandMonths("next")}
         />
       )}
 
