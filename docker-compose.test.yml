@@ -1,0 +1,21 @@
+version: "3.9"
+
+services:
+  postgres-test:
+    image: postgres:16-alpine
+    container_name: control-cuentas-test-db
+    restart: "no"
+    ports:
+      - "5433:5432"
+    environment:
+      POSTGRES_USER: test
+      POSTGRES_PASSWORD: test
+      POSTGRES_DB: control-cuentas-test
+    tmpfs:
+      - /var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U test -d control-cuentas-test"]
+      interval: 2s
+      timeout: 5s
+      retries: 10
+      start_period: 3s

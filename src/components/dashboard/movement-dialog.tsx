@@ -19,7 +19,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Loader2, Pencil } from "lucide-react";
+import { Loader2, Pencil, AlertCircle } from "lucide-react";
 
 interface Category {
   id: string;
@@ -55,10 +55,25 @@ interface Props {
   editMovement?: MovementToEdit | null;
 }
 
-export function MovementDialog({ open, onOpenChange, onSave, defaultType = "EGRESO", editMovement }: Props) {
+function categoryLabel(
+  id: string,
+  categories: Category[],
+): string {
+  const found = categories.find((c) => c.id === id);
+  return found ? found.name : id;
+}
+
+export function MovementDialog({
+  open,
+  onOpenChange,
+  onSave,
+  defaultType = "EGRESO",
+  editMovement,
+}: Props) {
   const [categories, setCategories] = useState<Category[]>([]);
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   const [form, setForm] = useState<MovementFormData>({
     description: "",
     amount: "",
@@ -72,6 +87,7 @@ export function MovementDialog({ open, onOpenChange, onSave, defaultType = "EGRE
 
   useEffect(() => {
     if (open) {
+      setError(null);
       if (editMovement) {
         setForm({
           description: editMovement.description,
@@ -109,21 +125,29 @@ export function MovementDialog({ open, onOpenChange, onSave, defaultType = "EGRE
   }
 
   const filteredCategories = categories.filter((c) => c.type === form.type);
+  const selectedLabel = form.categoryId
+    ? categoryLabel(form.categoryId, categories)
+    : loading
+      ? "Cargando..."
+      : "Seleccionar categoría";
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     if (!form.description || !form.amount || !form.categoryId) return;
 
     setSaving(true);
+    setError(null);
     try {
       await onSave(
         {
           ...form,
           amount: form.amount.replace(/\./g, "").replace(",", "."),
         },
-        editMovement?.id
+        editMovement?.id,
       );
       onOpenChange(false);
+    } catch (err: any) {
+      setError(err.message || "Error al guardar el movimiento");
     } finally {
       setSaving(false);
     }
@@ -145,12 +169,21 @@ export function MovementDialog({ open, onOpenChange, onSave, defaultType = "EGRE
         </DialogHeader>
 
         <form onSubmit={handleSubmit} className="space-y-4">
+          {error && (
+            <div className="flex items-start gap-2 rounded-lg bg-destructive/10 p-3 text-sm text-destructive">
+              <AlertCircle className="h-4 w-4 mt-0.5 shrink-0" />
+              <span>{error}</span>
+            </div>
+          )}
+
           <div className="flex gap-2">
             <Button
               type="button"
               variant={form.type === "EGRESO" ? "default" : "outline"}
               className="flex-1"
-              onClick={() => setForm({ ...form, type: "EGRESO", categoryId: "" })}
+              onClick={() =>
+                setForm({ ...form, type: "EGRESO", categoryId: "" })
+              }
             >
               Gasto
             </Button>
@@ -158,7 +191,9 @@ export function MovementDialog({ open, onOpenChange, onSave, defaultType = "EGRE
               type="button"
               variant={form.type === "INGRESO" ? "default" : "outline"}
               className="flex-1"
-              onClick={() => setForm({ ...form, type: "INGRESO", categoryId: "" })}
+              onClick={() =>
+                setForm({ ...form, type: "INGRESO", categoryId: "" })
+              }
             >
               Ingreso
             </Button>
@@ -169,7 +204,9 @@ export function MovementDialog({ open, onOpenChange, onSave, defaultType = "EGRE
             <Input
               id="description"
               value={form.description}
-              onChange={(e) => setForm({ ...form, description: e.target.value })}
+              onChange={(e) =>
+                setForm({ ...form, description: e.target.value })
+              }
               placeholder="Ej: Tarjeta Naranja"
               required
             />
@@ -199,7 +236,7 @@ export function MovementDialog({ open, onOpenChange, onSave, defaultType = "EGRE
               required
             >
               <SelectTrigger>
-                <SelectValue placeholder={loading ? "Cargando..." : "Seleccionar categoría"} />
+                <SelectValue>{selectedLabel}</SelectValue>
               </SelectTrigger>
               <SelectContent>
                 {filteredCategories.map((cat) => (
@@ -209,28 +246,44 @@ export function MovementDialog({ open, onOpenChange, onSave, defaultType = "EGRE
                 ))}
                 {filteredCategories.length === 0 && !loading && (
                   <SelectItem value="_none" disabled>
-                    Sin categorías disponibles
+                    Sin categorías de{" "}
+                    {form.type === "INGRESO" ? "ingreso" : "gasto"}
                   </SelectItem>
                 )}
               </SelectContent>
             </Select>
+            {filteredCategories.length === 0 && !loading && (
+              <p className="text-xs text-muted-foreground">
+                Creá categorías de{" "}
+                {form.type === "INGRESO" ? "ingreso" : "gasto"} en la sección{" "}
+                <strong>Categorías</strong> antes de agregar movimientos.
+              </p>
+            )}
           </div>
 
-          <div className="flex items-center gap-2">
-            <input
-              type="checkbox"
-              id="isPaid"
-              checked={form.isPaid}
-              onChange={(e) => setForm({ ...form, isPaid: e.target.checked })}
-              className="h-4 w-4 rounded border-gray-300"
-            />
-            <Label htmlFor="isPaid" className="text-sm cursor-pointer">
-              Marcar como pagado
-            </Label>
-          </div>
+          {form.type === "EGRESO" && (
+            <div className="flex items-center gap-2">
+              <input
+                type="checkbox"
+                id="isPaid"
+                checked={form.isPaid}
+                onChange={(e) =>
+                  setForm({ ...form, isPaid: e.target.checked })
+                }
+                className="h-4 w-4 rounded border-gray-300"
+              />
+              <Label htmlFor="isPaid" className="text-sm cursor-pointer">
+                Marcar como pagado
+              </Label>
+            </div>
+          )}
 
           <DialogFooter>
-            <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => onOpenChange(false)}
+            >
               Cancelar
             </Button>
             <Button type="submit" disabled={saving}>

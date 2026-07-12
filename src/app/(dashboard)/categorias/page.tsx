@@ -108,7 +108,7 @@ export default function CategoriasPage() {
     return cats.map((cat) => (
       <div
         key={cat.id}
-        className="flex items-center justify-between rounded-lg border p-3 transition-colors hover:bg-muted/50 group"
+        className="flex items-center justify-between rounded-lg border p-3 transition-colors hover:bg-muted/50"
       >
         <div className="flex items-center gap-3">
           <span
@@ -117,24 +117,24 @@ export default function CategoriasPage() {
           />
           <span className="font-medium">{cat.name}</span>
         </div>
-        <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+        <div className="flex items-center gap-1 opacity-100">
           <Button
             variant="ghost"
             size="icon"
-            className="h-7 w-7 text-muted-foreground hover:text-primary"
+            className="h-8 w-8 text-muted-foreground hover:text-primary hover:bg-primary/10"
             onClick={() => openEdit(cat)}
             title="Editar"
           >
-            <Pencil className="h-3.5 w-3.5" />
+            <Pencil className="h-4 w-4" />
           </Button>
           <Button
             variant="ghost"
             size="icon"
-            className="h-7 w-7 text-muted-foreground hover:text-destructive"
+            className="h-8 w-8 text-muted-foreground hover:text-destructive hover:bg-destructive/10"
             onClick={() => handleDelete(cat)}
             title="Eliminar"
           >
-            <Trash2 className="h-3.5 w-3.5" />
+            <Trash2 className="h-4 w-4" />
           </Button>
         </div>
       </div>
