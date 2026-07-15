@@ -10,7 +10,8 @@
   <img src="https://img.shields.io/badge/PostgreSQL-4169E1?style=for-the-badge&logo=postgresql&logoColor=white" alt="PostgreSQL" />
   <img src="https://img.shields.io/badge/Tailwind_v4-06B6D4?style=for-the-badge&logo=tailwindcss&logoColor=white" alt="Tailwind v4" />
   <img src="https://img.shields.io/badge/shadcn/ui-000000?style=for-the-badge&logo=shadcnui&logoColor=white" alt="shadcn/ui" />
-  <img src="https://img.shields.io/badge/Jest-24_units-15C213?style=for-the-badge&logo=vitest&logoColor=white" alt="Tests" />
+  <img src="https://img.shields.io/badge/Test-Vitest-15C213?style=for-the-badge&logo=vitest&logoColor=white" alt="Tests" />
+  <img src="https://img.shields.io/badge/Deploy-Vercel-000000?style=for-the-badge&logo=vercel&logoColor=white" alt="Vercel" />
 </p>
 
 ---
@@ -96,9 +97,9 @@ User ──┐
 
 ## 🚀 Deploy
 
-> **Próximamente** en Vercel + Neon (PostgreSQL serverless).
+> 🌐 **[Live Demo](https://control-cuentas-6okkse5b4-gerariosdev-projects.vercel.app)** — PostgreSQL serverless con Neon + CI/CD con Vercel.
 
-Mientras tanto, corré local:
+También podés correrlo local:
 
 ```bash
 # Requisitos: PostgreSQL corriendo en puerto 5432
@@ -133,11 +134,11 @@ Password: demo1234
 
 ## 📸 Screenshots
 
-> Agregando capturas pronto 📷
-
 | Login | Dashboard | Categorías |
 |:-----:|:---------:|:----------:|
-| `pendiente` | `pendiente` | `pendiente` |
+| ![Login](public/screenshots/login-mockup.png) | ![Dashboard](public/screenshots/dashboard-mockup.png) | ![Mobile](public/screenshots/mobile-mockup.png) |
+
+> 🎨 Banner del proyecto: ![Banner](public/screenshots/banner-github.png)
 
 ## 🧑‍💻 Autor
 
