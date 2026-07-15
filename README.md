@@ -1,7 +1,11 @@
 
-# 💰 Control Cuentas
+![Control Cuentas](public/screenshots/banner-github.png)
 
-> **Aplicación web de finanzas personales** — Registrá ingresos y gastos, visualizá reportes, administrá categorías. Full Stack con Next.js 16, Prisma + PostgreSQL, y autenticación segura.
+**💰 Control de gastos e ingresos** — Dashboard interactivo con gráficos, CRUD completo, autenticación y modo oscuro.
+
+> 🏠 **Repositorio principal:** [Gerardo-Rioss/control-cuentas-web](https://github.com/Gerardo-Rioss/control-cuentas-web)
+> 🤖 **Built with:** [gerariosdev](https://github.com/gerariosdev) (AI coding assistant)
+> 🌐 **Live Demo:** [control-cuentas-6okkse5b4-gerariosdev-projects.vercel.app](https://control-cuentas-6okkse5b4-gerariosdev-projects.vercel.app)
 
 <p align="center">
   <img src="https://img.shields.io/badge/Next.js_16-000000?style=for-the-badge&logo=next.js&logoColor=white" alt="Next.js 16" />
