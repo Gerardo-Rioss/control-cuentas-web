@@ -235,7 +235,7 @@ export function MonthCard({
     }
   }
 
-  const incomes = movements.filter((m) => m.type === "INGRESO");
+  const incomes = movements.filter((m): m is typeof m & { type: "INGRESO" } => m.type === "INGRESO");
 
   const barChartData =
     chartData?.monthlyTrend && chartData.monthlyTrend.length >= 2
