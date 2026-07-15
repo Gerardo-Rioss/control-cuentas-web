@@ -1,5 +1,7 @@
 
-![Control Cuentas](public/screenshots/banner-github.png)
+# 💰 Control Cuentas
+
+![Control Cuentas](https://raw.githubusercontent.com/Gerardo-Rioss/control-cuentas-web/main/public/screenshots/banner-github.png)
 
 **💰 Control de gastos e ingresos** — Dashboard interactivo con gráficos, CRUD completo, autenticación y modo oscuro.
 
@@ -140,9 +142,9 @@ Password: demo1234
 
 | Login | Dashboard | Categorías |
 |:-----:|:---------:|:----------:|
-| ![Login](public/screenshots/login-mockup.png) | ![Dashboard](public/screenshots/dashboard-mockup.png) | ![Mobile](public/screenshots/mobile-mockup.png) |
+| ![Login](https://raw.githubusercontent.com/Gerardo-Rioss/control-cuentas-web/main/public/screenshots/login-mockup.png) | ![Dashboard](https://raw.githubusercontent.com/Gerardo-Rioss/control-cuentas-web/main/public/screenshots/dashboard-mockup.png) | ![Mobile](https://raw.githubusercontent.com/Gerardo-Rioss/control-cuentas-web/main/public/screenshots/mobile-mockup.png) |
 
-> 🎨 Banner del proyecto: ![Banner](public/screenshots/banner-github.png)
+> 🎨 Banner del proyecto: ![Banner](https://raw.githubusercontent.com/Gerardo-Rioss/control-cuentas-web/main/public/screenshots/banner-github.png)
 
 ## 🧑‍💻 Autor
 
