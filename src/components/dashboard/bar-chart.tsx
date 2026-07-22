@@ -11,6 +11,7 @@ import {
   Legend,
   Cell,
 } from "recharts";
+import { ChartTooltip } from "./chart-tooltip";
 
 interface ComparisonData {
   name: string;
@@ -21,6 +22,12 @@ interface ComparisonData {
 interface Props {
   data: ComparisonData[];
 }
+
+const barColors = {
+  success: "var(--color-success, oklch(0.627 0.194 149.214))",
+  destructive: "var(--color-destructive, oklch(0.577 0.245 27.325))",
+  muted: "var(--color-muted-foreground, oklch(0.556 0 0))",
+};
 
 export function BarChart({ data }: Props) {
   if (!data || data.length === 0) {
@@ -47,9 +54,13 @@ export function BarChart({ data }: Props) {
             className="text-muted-foreground"
           />
           <Tooltip
-            formatter={(value) => [
-              `$${Number(value).toLocaleString("es-AR")}`,
-            ]}
+            content={
+              <ChartTooltip
+                formatter={(value: number) =>
+                  `$${Number(value).toLocaleString("es-AR")}`
+                }
+              />
+            }
           />
           <Legend
             formatter={(value: string) => (
@@ -57,22 +68,33 @@ export function BarChart({ data }: Props) {
                 {value === "actual" ? "Mes actual" : "Mes anterior"}
               </span>
             )}
+            iconType="rect"
           />
-          <Bar dataKey="actual" name="actual" radius={[4, 4, 0, 0]}>
-            {data.map((entry, index) => (
+          <Bar
+            dataKey="actual"
+            name="actual"
+            radius={[4, 4, 0, 0]}
+            animationBegin={0}
+            animationDuration={800}
+            animationEasing="ease-out"
+          >
+            {data.map((entry) => (
               <Cell
-                key={index}
-                fill={entry.actual >= entry.previous ? "#16a34a" : "#ef4444"}
-                fillOpacity={0.8}
+                key={entry.name}
+                fill={entry.actual >= entry.previous ? barColors.success : barColors.destructive}
+                fillOpacity={0.85}
               />
             ))}
           </Bar>
           <Bar
             dataKey="previous"
             name="previous"
-            fill="#6b7280"
-            fillOpacity={0.4}
+            fill={barColors.muted}
+            fillOpacity={0.3}
             radius={[4, 4, 0, 0]}
+            animationBegin={200}
+            animationDuration={800}
+            animationEasing="ease-out"
           />
         </RechartsBar>
       </ResponsiveContainer>

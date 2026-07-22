@@ -10,6 +10,7 @@ import {
   ResponsiveContainer,
   Legend,
 } from "recharts";
+import { ChartTooltip } from "./chart-tooltip";
 
 interface TrendItem {
   month: string;
@@ -28,6 +29,11 @@ const formatMonth = (month: string) => {
     "Jul", "Ago", "Sep", "Oct", "Nov", "Dic",
   ];
   return `${months[parseInt(m) - 1]} ${y}`;
+};
+
+const lineColors = {
+  success: "var(--color-success, oklch(0.627 0.194 149.214))",
+  destructive: "var(--color-destructive, oklch(0.577 0.245 27.325))",
 };
 
 export function LineChart({ data }: Props) {
@@ -56,11 +62,11 @@ export function LineChart({ data }: Props) {
             className="text-muted-foreground"
           />
           <Tooltip
-            formatter={(value, name) => [
-              `$${Number(value).toLocaleString("es-AR")}`,
-              name === "ingresos" ? "Ingresos" : "Egresos",
-            ]}
-            labelFormatter={(label) => formatMonth(String(label))}
+            content={
+              <ChartTooltip
+                labelFormatter={(label: string) => formatMonth(String(label))}
+              />
+            }
           />
           <Legend
             formatter={(value: string) => (
@@ -72,18 +78,25 @@ export function LineChart({ data }: Props) {
           <Line
             type="monotone"
             dataKey="ingresos"
-            stroke="#16a34a"
-            strokeWidth={2}
-            dot={{ r: 4 }}
-            activeDot={{ r: 6 }}
+            name="ingresos"
+            stroke={lineColors.success}
+            strokeWidth={2.5}
+            dot={{ r: 4, strokeWidth: 2, fill: "var(--color-card, white)" }}
+            activeDot={{ r: 7, strokeWidth: 2 }}
+            animationDuration={1000}
+            animationEasing="ease-out"
           />
           <Line
             type="monotone"
             dataKey="egresos"
-            stroke="#ef4444"
-            strokeWidth={2}
-            dot={{ r: 4 }}
-            activeDot={{ r: 6 }}
+            name="egresos"
+            stroke={lineColors.destructive}
+            strokeWidth={2.5}
+            dot={{ r: 4, strokeWidth: 2, fill: "var(--color-card, white)" }}
+            activeDot={{ r: 7, strokeWidth: 2 }}
+            animationDuration={1000}
+            animationEasing="ease-out"
+            animationBegin={200}
           />
         </RechartsLine>
       </ResponsiveContainer>
