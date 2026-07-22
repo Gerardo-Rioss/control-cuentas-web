@@ -12,7 +12,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { formatCurrency } from "@/lib/utils";
 import { motion, AnimatePresence } from "framer-motion";
-import { Trash2, Loader2, Pencil } from "lucide-react";
+import { Trash2, Loader2, Pencil, TrendingUp } from "lucide-react";
 import { useState } from "react";
 
 interface IncomeMovement {
@@ -54,11 +54,19 @@ export function IncomePanel({ incomes, onEdit, onDelete, loading }: Props) {
   if (incomes.length === 0) {
     return (
       <motion.div
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        className="text-center py-8 text-muted-foreground"
+        initial={{ opacity: 0, y: 8 }}
+        animate={{ opacity: 1, y: 0 }}
+        className="flex flex-col items-center justify-center py-12 text-center"
       >
-        No hay ingresos registrados este mes
+        <div className="mb-3 flex h-14 w-14 items-center justify-center rounded-2xl bg-muted">
+          <TrendingUp className="h-7 w-7 text-muted-foreground" />
+        </div>
+        <p className="text-sm font-medium text-muted-foreground">
+          Sin ingresos este mes
+        </p>
+        <p className="text-xs text-muted-foreground/70 mt-1">
+          Registrá tu primer ingreso para verlo reflejado aquí
+        </p>
       </motion.div>
     );
   }
@@ -113,7 +121,7 @@ export function IncomePanel({ incomes, onEdit, onDelete, loading }: Props) {
                     <span>{inc.description}</span>
                   </div>
                 </TableCell>
-                <TableCell className="text-right font-mono tabular-nums text-green-600">
+                <TableCell className="text-right font-mono tabular-nums text-success">
                   +{formatCurrency(inc.amount)}
                 </TableCell>
                 <TableCell className="text-right">
@@ -148,7 +156,7 @@ export function IncomePanel({ incomes, onEdit, onDelete, loading }: Props) {
           </AnimatePresence>
           <TableRow className="font-bold bg-muted/30">
             <TableCell>Total Ingresos</TableCell>
-            <TableCell className="text-right font-mono text-green-600 tabular-nums">
+            <TableCell className="text-right font-mono text-success tabular-nums">
               <motion.span
                 key={total}
                 initial={{ scale: 1.1 }}

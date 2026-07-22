@@ -1,8 +1,9 @@
-import { auth, signOut } from "@/lib/auth";
+import { auth } from "@/lib/auth";
 import { redirect } from "next/navigation";
 import { Sidebar } from "@/components/layout/sidebar";
 import { MobileNav } from "@/components/layout/mobile-nav";
 import { UserMenuWrapper } from "./user-menu-wrapper";
+import { PageTransition } from "@/components/layout/page-transition";
 
 export default async function DashboardLayout({
   children,
@@ -20,11 +21,14 @@ export default async function DashboardLayout({
       <Sidebar />
       <div className="flex flex-1 flex-col">
         {/* Top header */}
-        <header className="sticky top-0 z-40 flex h-14 items-center justify-end gap-4 border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 px-6">
+        <header className="sticky top-0 z-40 flex h-14 items-center justify-end gap-4 border-b bg-background/80 backdrop-blur-xl supports-[backdrop-filter]:bg-background/60 px-6">
+          <div className="flex-1" />
           <UserMenuWrapper />
         </header>
         <main className="flex-1 p-4 md:p-6 pb-20 lg:pb-6">
-          {children}
+          <PageTransition>
+            {children}
+          </PageTransition>
         </main>
       </div>
       <MobileNav />
