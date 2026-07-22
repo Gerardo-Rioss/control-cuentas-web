@@ -283,17 +283,17 @@ export function MonthCard({
               <CardTitle className="text-lg">{monthLabel}</CardTitle>
             </div>
             <div className="flex items-center gap-3 text-sm">
-              <span className="flex items-center gap-1.5 text-green-600">
+              <span className="flex items-center gap-1.5 text-success">
                 <TrendingUp className="h-3.5 w-3.5" />
                 {formatCurrency(summary.ingresos)}
               </span>
-              <span className="flex items-center gap-1.5 text-red-600">
+              <span className="flex items-center gap-1.5 text-destructive">
                 <TrendingDown className="h-3.5 w-3.5" />
                 {formatCurrency(summary.egresos)}
               </span>
               <span
                 className={`flex items-center gap-1.5 font-semibold ${
-                  balance >= 0 ? "text-green-600" : "text-red-600"
+                  balance >= 0 ? "text-success" : "text-destructive"
                 }`}
               >
                 <Wallet className="h-3.5 w-3.5" />

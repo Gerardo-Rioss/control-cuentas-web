@@ -171,7 +171,7 @@ export default function CategoriasPage() {
           <Card>
             <CardHeader className="pb-3">
               <CardTitle className="text-base flex items-center gap-2">
-                <Tag className="h-4 w-4 text-red-500" />
+                <Tag className="h-4 w-4 text-destructive" />
                 Gastos
                 <span className="ml-auto text-sm font-normal text-muted-foreground">
                   {expenseCats.length}
@@ -192,7 +192,7 @@ export default function CategoriasPage() {
           <Card>
             <CardHeader className="pb-3">
               <CardTitle className="text-base flex items-center gap-2">
-                <Tag className="h-4 w-4 text-green-500" />
+                <Tag className="h-4 w-4 text-success" />
                 Ingresos
                 <span className="ml-auto text-sm font-normal text-muted-foreground">
                   {incomeCats.length}
